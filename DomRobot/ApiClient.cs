@@ -32,7 +32,7 @@ namespace DomRobot
         {
             var response = Task.Run(async () => await CallApi(new LoginRequest(username, password))).Result;;
 
-            if (!response.WasSuccessful() || !response.ResData.Tfa.Equals("0")) return response;
+            if (!response.WasSuccessful() || response.ResData.Tfa.Equals("0")) return response;
             if (sharedSecret == null)
             {
                 throw new ArgumentException("Api requests two factor authentication but no shared secret is given.");
@@ -51,9 +51,19 @@ namespace DomRobot
             return Task.Run(async () => await CallApi(new LogoutRequest())).Result;
         }
 
-        public async Task<Response<T>> CallApi<TZ,T>(Request<TZ,T> request)
+        public Response<T> Request<TZ, T>(Request<TZ,T> request)
         {
-            var json = JsonSerializer.Serialize(request);
+            return Task.Run(async () => await CallApi(request)).Result;
+        }
+
+        private async Task<Response<T>> CallApi<TZ,T>(Request<TZ,T> request)
+        {
+            var json = JsonSerializer.Serialize(request, new JsonSerializerOptions(){IgnoreNullValues = true});
+            if (_debugMode)
+            {
+                Console.WriteLine("Send:");
+                Console.WriteLine(json);
+            }
             var data = new StringContent(json, Encoding.UTF8, "application/json");
             //data.Headers.Add("User-Agent", "DomRobot/" + VERSION + " (C#)");
 
@@ -62,10 +72,11 @@ namespace DomRobot
             string result = response.Content.ReadAsStringAsync().Result;
             if (_debugMode)
             {
+                Console.WriteLine("Receive:");
                 Console.WriteLine(result);
             }
             
-            var resultObj = JsonSerializer.Deserialize<Response<T>>(result);
+            var resultObj = JsonSerializer.Deserialize<Response<T>>(result, new JsonSerializerOptions{IncludeFields = true});
             if (resultObj == null)
             {
                 throw new Exception("Deserialization error");

@@ -1,6 +1,5 @@
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
-
-// ReSharper disable MemberCanBePrivate.Global
 
 namespace DomRobot.Methods
 {
@@ -8,11 +7,11 @@ namespace DomRobot.Methods
     {
         
         [JsonPropertyName("code")]
-        public int Code { get; }
+        public int Code { get; set; }
         [JsonPropertyName("msg")]
-        public string Msg { get; }
+        public string Msg { get; set; }
         [JsonPropertyName("resData")]
-        public T ResData { get; }
+        public T ResData { get; set; }
 
         public bool WasSuccessful()
         {

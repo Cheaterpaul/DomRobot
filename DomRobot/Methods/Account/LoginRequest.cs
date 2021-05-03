@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace DomRobot.Methods.Account
@@ -10,11 +11,11 @@ namespace DomRobot.Methods.Account
 
         public class LoginParameter
         {
-            [JsonPropertyName("user")]
+            [JsonInclude,JsonPropertyName("user")]
             public string Username { get; }
-            [JsonPropertyName("pass")]
+            [JsonInclude,JsonPropertyName("pass")]
             public string Password { get; }
-            [JsonPropertyName("lang")]
+            [JsonInclude,JsonPropertyName("lang")]
             public string Language { get; }
 
             public LoginParameter(string username, string password, string language = "de")
@@ -27,16 +28,16 @@ namespace DomRobot.Methods.Account
         
         public class LoginData
         {
-                [JsonPropertyName("customerId")]
-                public int CustomerId { get; }
-                [JsonPropertyName("accountId")]
-                public int AccountId { get; }
-                [JsonPropertyName("tfa")]
-                public string Tfa { get; }
-                [JsonPropertyName("builddate")]
+                [JsonInclude, JsonPropertyName("customerId")]
+                public int CustomerId { get; set; }
+                [JsonInclude, JsonPropertyName("accountId")]
+                public int AccountId { get; set; }
+                [JsonInclude, JsonPropertyName("tfa")]
+                public string Tfa { get; set; }
+                [JsonInclude, JsonPropertyName("builddate")]
                 public string Builddate { get; }
-                [JsonPropertyName("version")]
-                private string Version { get; }
+                [JsonInclude, JsonPropertyName("version")]
+                public string Version { get; }
         }
     }
 }

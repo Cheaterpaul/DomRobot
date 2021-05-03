@@ -12,7 +12,7 @@ namespace DomRobot.Methods.Account
 
         public class UnlockParameter
         {
-            [JsonPropertyName("tan")]
+            [JsonInclude,JsonPropertyName("tan")]
             public string tan { get; }
 
             public UnlockParameter(string sharedSecret)
