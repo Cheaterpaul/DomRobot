@@ -1,20 +1,27 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using System.Xml;
 
 namespace DomRobot.Methods
 {
 
     // ReSharper disable once UnusedTypeParameter
-    public class Request<T,TZ>
+    public class Request<T>
     {
-        [JsonPropertyName("method")]
-        public string Method { get; }
-        [JsonPropertyName("params")]
-        public T Parameter { get; }
+        [JsonInclude, JsonPropertyName("method")]
+        public string Method { get; set; }
 
-        public Request(string method, T parameter)
+        [JsonInclude, JsonPropertyName("params")]
+        public Dictionary<string, object> Parameter { get; set; } = new();
+
+        public Request(string method)
         {
             Method = method;
-            Parameter = parameter;
+        }
+
+        public void Put(string key, object value)
+        {
+            Parameter.Add(key, value);
         }
     }
 }

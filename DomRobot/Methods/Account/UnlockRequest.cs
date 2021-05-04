@@ -4,21 +4,11 @@ using OtpNet;
 
 namespace DomRobot.Methods.Account
 {
-    public class UnlockRequest : Request<UnlockRequest.UnlockParameter, UnlockRequest.UnlockData>
+    public class UnlockRequest : Request<UnlockRequest.UnlockData>
     {
-        public UnlockRequest(UnlockParameter parameter) : base("account.unlock", parameter)
+        public UnlockRequest(string totp) : base("account.unlock")
         {
-        }
-
-        public class UnlockParameter
-        {
-            [JsonInclude,JsonPropertyName("tan")]
-            public string tan { get; }
-
-            public UnlockParameter(string sharedSecret)
-            {
-                this.tan = new Totp(Encoding.UTF8.GetBytes(sharedSecret)).ComputeTotp();
-            }
+            Put("tan", new Totp(Encoding.UTF8.GetBytes(totp)).ComputeTotp());
         }
 
         public class UnlockData

@@ -1,31 +1,15 @@
-using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace DomRobot.Methods.Account
 {
-    public class LoginRequest : Request<LoginRequest.LoginParameter, LoginRequest.LoginData>
+    public class LoginRequest : Request<LoginRequest.LoginData>
     {
-        public LoginRequest(string username, string password) : base("account.login", new LoginParameter(username, password))
+        public LoginRequest(string username, string password) : base("account.login")
         {
+            Put("user", username);
+            Put("pass", password);
         }
 
-        public class LoginParameter
-        {
-            [JsonInclude,JsonPropertyName("user")]
-            public string Username { get; }
-            [JsonInclude,JsonPropertyName("pass")]
-            public string Password { get; }
-            [JsonInclude,JsonPropertyName("lang")]
-            public string Language { get; }
-
-            public LoginParameter(string username, string password, string language = "de")
-            {
-                this.Username = username;
-                this.Password = password;
-                this.Language = language;
-            }
-        }
-        
         public class LoginData
         {
                 [JsonInclude, JsonPropertyName("customerId")]

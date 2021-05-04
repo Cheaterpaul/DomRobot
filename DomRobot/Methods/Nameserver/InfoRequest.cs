@@ -3,23 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace DomRobot.Methods.Nameserver
 {
-    public class InfoRequest : Request<InfoRequest.InfoParameter, InfoRequest.InfoData>
+    public class InfoRequest : Request<InfoRequest.InfoData>
     {
-        public InfoRequest(InfoParameter parameter) : base("nameserver.info", parameter)
+        public InfoRequest(string domain) : base("nameserver.info")
         {
+            Put("domain", domain);
         }
 
-        public class InfoParameter
-        {
-            [JsonInclude,JsonPropertyName("domain")]
-            public string Domain { get; set; }
-
-            public InfoParameter(string domain)
-            {
-                Domain = domain;
-            }
-        }
-        
         public class InfoData
         {
             [JsonInclude,JsonPropertyName("roId")]

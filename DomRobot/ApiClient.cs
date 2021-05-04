@@ -30,7 +30,7 @@ namespace DomRobot
 
         public Response<LoginRequest.LoginData> Login(string username, string password, string sharedSecret = null)
         {
-            var response = Task.Run(async () => await CallApi(new LoginRequest(username, password))).Result;;
+            Response<LoginRequest.LoginData> response = Task.Run(async () => await CallApi(new LoginRequest(username, password))).Result;
 
             if (!response.WasSuccessful() || response.ResData.Tfa.Equals("0")) return response;
             if (sharedSecret == null)
@@ -38,7 +38,7 @@ namespace DomRobot
                 throw new ArgumentException("Api requests two factor authentication but no shared secret is given.");
             }
 
-            var tfaResponse = Task.Run(async () => await CallApi(new UnlockRequest(new UnlockRequest.UnlockParameter(sharedSecret)))).Result;
+            var tfaResponse = Task.Run(async () => await CallApi(new UnlockRequest(sharedSecret))).Result;
             if (!tfaResponse.WasSuccessful())
             {
                 throw new Exception("2FA Failed with code: " + tfaResponse.Code+", message: " + tfaResponse.Msg);
@@ -46,17 +46,17 @@ namespace DomRobot
             return response;
         }
 
-        public Response<LogoutRequest.LogoutData> Logout()
+        public void Logout()
         {
-            return Task.Run(async () => await CallApi(new LogoutRequest())).Result;
+            Task.Run(async () => await CallApi(new LogoutRequest()));
         }
 
-        public Response<T> Request<TZ, T>(Request<TZ,T> request)
+        public Response<T> Request<T>(Request<T> request)
         {
             return Task.Run(async () => await CallApi(request)).Result;
         }
 
-        private async Task<Response<T>> CallApi<TZ,T>(Request<TZ,T> request)
+        private async Task<Response<T>> CallApi<T>(Request<T> request)
         {
             var json = JsonSerializer.Serialize(request, new JsonSerializerOptions(){IgnoreNullValues = true});
             if (_debugMode)
