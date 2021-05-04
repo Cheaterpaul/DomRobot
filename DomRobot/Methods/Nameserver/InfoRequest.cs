@@ -5,9 +5,20 @@ namespace DomRobot.Methods.Nameserver
 {
     public class InfoRequest : Request<InfoRequest.InfoData>
     {
-        public InfoRequest(string domain) : base("nameserver.info")
+        public InfoRequest() : base("nameserver.info")
+        {
+        }
+
+        public InfoRequest Domain(string domain)
         {
             Put("domain", domain);
+            return this;
+        }
+        
+        public InfoRequest RecordId(int recordId)
+        {
+            Put("recordId", recordId);
+            return this;
         }
 
         public class InfoData

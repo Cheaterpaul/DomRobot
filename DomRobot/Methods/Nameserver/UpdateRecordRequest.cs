@@ -6,7 +6,7 @@ namespace DomRobot.Methods.Nameserver
 {
     public class UpdateRecordRequest : Request<UpdateRecordRequest.UpdateRecordData>
     {
-        public UpdateRecordRequest(string id) : base("nameserver.updateRecord")
+        public UpdateRecordRequest(int id) : base("nameserver.updateRecord")
         {
             Put("id", id);
         }
