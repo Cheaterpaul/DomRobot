@@ -17,10 +17,16 @@ namespace UpdateIPAddresses
             Console.WriteLine("Start ip address update:");
 
             ApiClient client = CreateClient(Environment.GetEnvironmentVariable("username"), Environment.GetEnvironmentVariable("password"), debug: debug);
+            
+            Console.WriteLine("Get domain entries:");
 
             List<int> ids = GetIDs2(client);
 
+            Console.WriteLine("Get ip address:");
+            
             string ip = GetIp();
+            
+            Console.WriteLine(ip);
             
             foreach (var id in ids)
             {
@@ -29,6 +35,8 @@ namespace UpdateIPAddresses
                     ChangeValue(client, id, ip);
                 }
             }
+            
+            Console.WriteLine("Logout");
             
             client.Logout();
         }
