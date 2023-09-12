@@ -1,94 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using DomRobot;
-using DomRobot.Methods;
-using DomRobot.Methods.Account;
 using DomRobot.Methods.Nameserver;
+using DotNetEnv;
 
-namespace UpdateIPAddresses
+namespace UpdateIPAddresses;
+
+public static class Program
 {
-    class Program
+    private static void Main(string[] args)
     {
-        static void Main(string[] args)
+        Env.Load();
+        var debug = args.Length > 0 && args[0].Equals("true");
+        Console.WriteLine("Start ip address update:");
+        var client = CreateClient(Environment.GetEnvironmentVariable("username"), Environment.GetEnvironmentVariable("password"), debug: debug);
+
+        Console.WriteLine("Get domain entries:");
+        var ids = GetIDs2(client);
+
+        Console.WriteLine("Get ip address:");
+        var ip = GetIp();
+
+        Console.WriteLine(ip);
+
+        foreach (var id in ids.Where(id => RequireChange(client, id, ip)))
         {
-            DotNetEnv.Env.Load();
-            var debug = args.Length > 0 && args[0].Equals("true");
-            Console.WriteLine("Start ip address update:");
-
-            ApiClient client = CreateClient(Environment.GetEnvironmentVariable("username"), Environment.GetEnvironmentVariable("password"), debug: debug);
-            
-            Console.WriteLine("Get domain entries:");
-
-            List<int> ids = GetIDs2(client);
-
-            Console.WriteLine("Get ip address:");
-            
-            string ip = GetIp();
-            
-            Console.WriteLine(ip);
-            
-            foreach (var id in ids)
-            {
-                if (requireChange(client, id, ip))
-                {
-                    ChangeValue(client, id, ip);
-                }
-            }
-            
-            Console.WriteLine("Logout");
-            
-            client.Logout();
+            ChangeValue(client, id, ip);
         }
 
-        static string GetIp()
-        {
-            var s =new WebClient().DownloadString(new Uri("https://v6.ident.me/"));
-            return s;
-        }
+        Console.WriteLine("Logout");
 
-        static ApiClient CreateClient(string username, string password, string secret = null, bool debug = false)
-        {
-            ApiClient client = new ApiClient(ApiClient.LIVE_URL, debug);
-            Response<LoginRequest.LoginData> login =client.Login(username, password, secret);
-            if (!login.WasSuccessful())
-            {
-                throw new Exception("Could not connect to API server. Error: " + login.Code + ": " + login.Msg);
-            }
+        client.Logout();
+    }
 
-            return client;
-        }
+    private static string GetIp()
+    {
+        return new WebClient().DownloadString(new Uri("https://v6.ident.me/"));
+    }
 
-        static List<int> GetIDs2(ApiClient client)
-        {
-            Response<InfoRequest.InfoData> response = client.Request(new InfoRequest().Domain("paube.de"));
-            List<InfoRequest.InfoData.RecordType > records = response.ResData.Record;
-            List<int> ids = new List<int>();
-            foreach (var record in records)
-            {
-                if (record.Name.EndsWith("home.paube.de"))
-                {
-                    ids.Add(record.Id);
-                }
-            }
+    private static ApiClient CreateClient(string username, string password, string secret = null, bool debug = false)
+    {
+        var client = new ApiClient(ApiClient.LIVE_URL, debug);
+        var login = client.Login(username, password, secret);
+        if (!login.WasSuccessful()) throw new Exception("Could not connect to API server. Error: " + login.Code + ": " + login.Msg);
 
-            return ids;
-        }
+        return client;
+    }
 
-        static bool requireChange(ApiClient client, int id, string ip)
-        {
-            Response<InfoRequest.InfoData> response = client.Request(new InfoRequest().RecordId(id));
-            return !ip.Equals(response.ResData.Record[0].Content);
-        }
+    private static IEnumerable<int> GetIDs2(ApiClient client)
+    {
+        var domain = Environment.GetEnvironmentVariable("domain");
+        var response = client.Request(new InfoRequest().Domain(domain));
+        var records = response.ResData.Record;
 
-        static void ChangeValue(ApiClient client, int id, string ip)
-        {
-            Response<UpdateRecordRequest.UpdateRecordData> response = client.Request(new UpdateRecordRequest(id).Content(ip));
+        var targets = Environment.GetEnvironmentVariable("target_domain").Split(',').Select(x => $"{x}.{domain}");
+        return records.Where(x => targets.Any(y => x.Name.EndsWith(y))).Select(x => x.Id);
+    }
 
-            if (!response.WasSuccessful())
-            {
-                throw new Exception("Api error while checking the domain status. Code: " + response.Code + ", Message: " + response.Msg);
-            }
-        }
+    private static bool RequireChange(ApiClient client, int id, string ip)
+    {
+        var response = client.Request(new InfoRequest().RecordId(id));
+        return !ip.Equals(response.ResData.Record[0].Content);
+    }
+
+    private static void ChangeValue(ApiClient client, int id, string ip)
+    {
+        var response = client.Request(new UpdateRecordRequest(id).Content(ip));
+
+        if (!response.WasSuccessful()) throw new Exception("Api error while checking the domain status. Code: " + response.Code + ", Message: " + response.Msg);
     }
 }
